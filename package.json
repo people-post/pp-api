@@ -1,0 +1,24 @@
+{
+    "name": "pp-api",
+    "version": "1.0.0",
+    "description": "APIs used by pp-app and open to third parties for alternative app developments.",
+    "homepage": "https://github.com/people-post/pp-api#readme",
+    "bugs": {
+        "url": "https://github.com/people-post/pp-api/issues"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/people-post/pp-api.git"
+    },
+    "license": "MIT",
+    "author": "",
+    "type": "module",
+    "main": "src/index.js",
+    "config": {
+        "entry": "src/index.js"
+    },
+    "scripts": {
+        "package": "esbuild $npm_package_config_entry --bundle --platform=browser --outfile=bundle.js --global-name=pp",
+        "test": "echo \"Error: no test specified\" && exit 1"
+    }
+}
