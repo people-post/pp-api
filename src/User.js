@@ -1,4 +1,5 @@
 import Ipfs from './Ipfs.js';
+import Utilities from './Utilities.js';
 
 export default class User {
   #data;
@@ -7,6 +8,7 @@ export default class User {
   #dMarks;
   #iconUrl;
   #ipfs = new Ipfs();
+  #util = new Utilities();
   _dataSource;
   _delegate;
 
@@ -105,7 +107,7 @@ export default class User {
   async _asGetOrInitIdolRoot() {
     if (!this.#dIdols) {
       let cid = this._getData("idols");
-      if (Utilities.isCid(cid)) {
+      if (this.#util.isCid(cid)) {
         this.#dIdols = await this.#ipfs.asFetchCidJson(cid);
       } else {
         this.#dIdols = {idols : []};
@@ -117,7 +119,7 @@ export default class User {
   async _asGetOrInitPostRoot() {
     if (!this.#dPosts) {
       let cid = this._getData("posts");
-      if (Utilities.isCid(cid)) {
+      if (this.#util.isCid(cid)) {
         try {
           this.#dPosts = await this.#ipfs.asFetchCidJson(cid);
         } catch (e) {
@@ -134,7 +136,7 @@ export default class User {
   async _asGetOrInitMarkRoot() {
     if (!this.#dMarks) {
       let cid = this._getData("marks");
-      if (Utilities.isCid(cid)) {
+      if (this.#util.isCid(cid)) {
         this.#dMarks = await this.#ipfs.asFetchCidJson(cid);
 
       } else {
