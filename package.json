@@ -20,5 +20,9 @@
     "scripts": {
         "package": "esbuild $npm_package_config_entry --bundle --platform=browser --outfile=bundle.js --global-name=pp",
         "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "dependencies": {
+        "@helia/verified-fetch": "^4.0.1",
+        "multiformats": "^13.4.1"
     }
 }

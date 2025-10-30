@@ -1,9 +1,12 @@
+import Ipfs from './Ipfs.js';
+
 export default class User {
   #data;
   #dPosts;
   #dIdols;
   #dMarks;
   #iconUrl;
+  #ipfs = new Ipfs();
   _dataSource;
   _delegate;
 
@@ -103,7 +106,7 @@ export default class User {
     if (!this.#dIdols) {
       let cid = this._getData("idols");
       if (Utilities.isCid(cid)) {
-        this.#dIdols = await this.#asFetchCidJson(cid);
+        this.#dIdols = await this.#ipfs.asFetchCidJson(cid);
       } else {
         this.#dIdols = {idols : []};
       }
@@ -116,7 +119,7 @@ export default class User {
       let cid = this._getData("posts");
       if (Utilities.isCid(cid)) {
         try {
-          this.#dPosts = await this.#asFetchCidJson(cid);
+          this.#dPosts = await this.#ipfs.asFetchCidJson(cid);
         } catch (e) {
           // TODO: Data not found, need let user know
           this.#dPosts = {posts : []};
@@ -132,7 +135,8 @@ export default class User {
     if (!this.#dMarks) {
       let cid = this._getData("marks");
       if (Utilities.isCid(cid)) {
-        this.#dMarks = await this.#asFetchCidJson(cid);
+        this.#dMarks = await this.#ipfs.asFetchCidJson(cid);
+
       } else {
         this.#dMarks = {marks : {}};
       }
@@ -154,14 +158,6 @@ export default class User {
     }
   }
 
-  async #asFetchCidJson(cid) {
-    return await this._dataSource.asOnWeb3UserRequestFetchCidJson(this, cid);
-  }
-
-  async #asFetchCidImage(cid) {
-    return await this._dataSource.asOnWeb3UserRequestFetchCidImage(this, cid);
-  }
-
   async #asFindMark(prefix, suffix, dMarks) {
     if (!dMarks) {
       return null;
@@ -179,7 +175,7 @@ export default class User {
       key = suffix.slice(0, 2);
       if (key in dMarks) {
         let cid = dMarks[key];
-        let d = await this.#asFetchCidJson(cid);
+        let d = await this.#ipfs.asFetchCidJson(cid);
         return await this.#asFindMark(prefix + key, suffix.slice(2), d.marks);
       }
     }
@@ -187,6 +183,6 @@ export default class User {
   }
 
   async #asFetchIconImage(cid) {
-    this.#iconUrl = await this.#asFetchCidImage(cid);
+    this.#iconUrl = await this.#ipfs.asFetchCidImage(cid);
   }
 };
