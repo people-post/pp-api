@@ -237,7 +237,8 @@ export default class Owner extends User {
     console.debug("Uploading content...");
     let cid = await this.asUploadJson(this.#toLtsJsonData());
 
-    // _cid is an internal value created in glb.web3Resolver.asResolve()
+    // _cid is an internal value when resolve
+    // TODO: glb.web3Resolver.asResolve() is in another repo
     this._setData("_cid", cid);
     newCidInfo.texts.push(cid);
 
