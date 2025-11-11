@@ -76,7 +76,7 @@ export default class RemoteServer {
 
   #parseAddressOrUseHost(sAddr) {
     let s = sAddr;
-    if (!s && glb.env.hasHost()) {
+    if (!s && sys.utl.hasHost()) {
       s = this.#getLocationMultiAddr();
     }
     return parseMultiAddr(s);
