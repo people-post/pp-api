@@ -15,19 +15,19 @@ export default class RemoteServer {
     return this.#hostInfo.register && this.#hostInfo.register.is_enabled;
   }
 
-  getName() { return this.#getHostAddr(this.#multiAddr); }
-  getAddress() { return this.#getHostAddr(this.#multiAddr); }
+  getName() { return this.#multiAddr.toString(); }
+  getAddress() { return this.#multiAddr.toString(); }
   getPeerId() { return this.#hostInfo.peer_id; }
   getRegisterType() {
     return this.#hostInfo.register ? this.#hostInfo.register.type : null;
   }
 
-  getApiAddr(path) {
-    return this.#multiAddr.toString() + encodeURIComponent(path);
-  }
-
   getApiUrl(path) {
-    return this.#multiAddr ? this.#getHostAddr(this.#multiAddr) + path : null;
+    let s = this.#multiAddr.toString() + "/http-path/";
+    if (path.startsWith('/')) {
+      return s + encodeURIComponent(path.slice(1));
+    }
+    return s + encodeURIComponent(path);
   }
 
   async asInit(sAddr) {
@@ -49,31 +49,6 @@ export default class RemoteServer {
     return '/dns4/' + name + '/tcp/' + port;
   }
 
-  #getHostAddr(ma) {
-    let protocol = "http";
-    let hostname;
-    let port;
-    for (let c of ma.getComponents()) {
-      switch (c.name) {
-      case "https":
-        protocol = "https";
-        break;
-      case "ip4":
-        hostname = c.value;
-        break;
-      case "ip6":
-        hostname = "[" + c.value + "]";
-        break;
-      case "tcp":
-        port = c.value;
-        break;
-      default:
-        break;
-      }
-    }
-    return protocol + "://" + hostname + ":" + port;
-  }
-
   #parseAddressOrUseHost(sAddr) {
     let s = sAddr;
     if (!s && sys.utl.hasHost()) {
@@ -83,17 +58,13 @@ export default class RemoteServer {
   }
 
   async #asFetchHostInfo() {
-    if (!this.#multiAddr) {
-      return null;
-    }
-
     const url = this.getApiUrl("/api/host/info");
     let res;
     try {
       const options = {method : "GET", signal : AbortSignal.timeout(5000)};
-      res = await this.#asP2pFetch(url, options);
+      res = await sys.ipfs.asFetch(url, options);
     } catch (e) {
-      console.error("Failed to contact server", e.message);
+      console.error("Failed to contact server:", e.message);
       return null;
     }
     let d = await res.json();
@@ -102,9 +73,5 @@ export default class RemoteServer {
       return null;
     }
     return d.data.info;
-  }
-
-  async #asP2pFetch(req, options) {
-    return await sys.ipfs.asFetch(req, options);
   }
 };
