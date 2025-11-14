@@ -16,17 +16,22 @@ test.describe('Owner test', () => {
       async asUploadJson(msg, id, sig) { return ''; },
       async asPin(msg, id, sig) {}
     };
+    let mockPublisher = {async asPublish(cid, bearerId, sig) { return ''; }};
 
     t.mock.method(mockDataSource, 'onWeb3OwnerRequestLoadCheckPoint');
     t.mock.method(mockDelegate, 'asOnWeb3OwnerRequestSign');
     t.mock.method(mockDelegate, 'onWeb3OwnerRequestSaveCheckPoint');
     t.mock.method(mockStorage, 'asUploadJson');
     t.mock.method(mockStorage, 'asPin');
+    t.mock.method(mockPublisher, 'asPublish');
+
     let owner = new Owner({});
     owner.setDataSource(mockDataSource);
     owner.setDelegate(mockDelegate);
     owner.setStorage(mockStorage);
-    await owner.asPublishPost({}, []);
+    owner.setPublishers([ mockPublisher ]);
+
+    await owner.asPublishPost({abc : 'def'}, []);
     assert.strictEqual(
         mockDataSource.onWeb3OwnerRequestLoadCheckPoint.mock.callCount(), 0);
     assert.strictEqual(mockDelegate.asOnWeb3OwnerRequestSign.mock.callCount(),
@@ -35,5 +40,6 @@ test.describe('Owner test', () => {
         mockDelegate.onWeb3OwnerRequestSaveCheckPoint.mock.callCount(), 1);
     assert.strictEqual(mockStorage.asUploadJson.mock.callCount(), 2);
     assert.strictEqual(mockStorage.asPin.mock.callCount(), 1);
+    assert.strictEqual(mockPublisher.asPublish.mock.callCount(), 1);
   });
 });
