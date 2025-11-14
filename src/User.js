@@ -1,5 +1,4 @@
-import Ipfs from './Ipfs.js';
-import Utilities from './Utilities.js';
+import {sys} from './Global.js';
 
 export default class User {
   #data;
@@ -7,8 +6,6 @@ export default class User {
   #dIdols;
   #dMarks;
   #iconUrl;
-  #ipfs = new Ipfs();
-  #util = new Utilities();
   _dataSource;
   _delegate;
 
@@ -78,13 +75,16 @@ export default class User {
   }
 
   async asyncLoadMorePostInfos(idRecord) {
+    console.debug("Loading more posts");
     let dPosts = await this._asGetOrInitPostRoot();
 
     let segId = idRecord.getNextSegmentId();
     // TODO: Handle folded files
     if (segId > 0) {
+      console.debug("No more");
       return Promise.resolve();
     } else {
+      console.debug("Loaded:", dPosts.posts.length);
       return dPosts.posts;
     }
   }
@@ -107,8 +107,8 @@ export default class User {
   async _asGetOrInitIdolRoot() {
     if (!this.#dIdols) {
       let cid = this._getData("idols");
-      if (this.#util.isCid(cid)) {
-        this.#dIdols = await this.#ipfs.asFetchCidJson(cid);
+      if (sys.utl.isCid(cid)) {
+        this.#dIdols = await sys.ipfs.asFetchCidJson(cid);
       } else {
         this.#dIdols = {idols : []};
       }
@@ -119,9 +119,9 @@ export default class User {
   async _asGetOrInitPostRoot() {
     if (!this.#dPosts) {
       let cid = this._getData("posts");
-      if (this.#util.isCid(cid)) {
+      if (sys.utl.isCid(cid)) {
         try {
-          this.#dPosts = await this.#ipfs.asFetchCidJson(cid);
+          this.#dPosts = await sys.ipfs.asFetchCidJson(cid);
         } catch (e) {
           // TODO: Data not found, need let user know
           this.#dPosts = {posts : []};
@@ -136,8 +136,8 @@ export default class User {
   async _asGetOrInitMarkRoot() {
     if (!this.#dMarks) {
       let cid = this._getData("marks");
-      if (this.#util.isCid(cid)) {
-        this.#dMarks = await this.#ipfs.asFetchCidJson(cid);
+      if (sys.utl.isCid(cid)) {
+        this.#dMarks = await sys.ipfs.asFetchCidJson(cid);
 
       } else {
         this.#dMarks = {marks : {}};
@@ -177,7 +177,7 @@ export default class User {
       key = suffix.slice(0, 2);
       if (key in dMarks) {
         let cid = dMarks[key];
-        let d = await this.#ipfs.asFetchCidJson(cid);
+        let d = await sys.ipfs.asFetchCidJson(cid);
         return await this.#asFindMark(prefix + key, suffix.slice(2), d.marks);
       }
     }
@@ -185,6 +185,6 @@ export default class User {
   }
 
   async #asFetchIconImage(cid) {
-    this.#iconUrl = await this.#ipfs.asFetchCidImage(cid);
+    this.#iconUrl = await sys.ipfs.asFetchCidImage(cid);
   }
 };
