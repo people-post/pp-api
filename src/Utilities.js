@@ -5,7 +5,9 @@ import {CID} from 'multiformats';
 
 export default class Utilities {
 
-  hasHost() { return window && window.location.host.length > 0; }
+  hasHost() {
+    return (typeof window !== 'undefined') && window.location.host.length > 0;
+  }
 
   isCid(s) {
     try {
