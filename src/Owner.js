@@ -137,14 +137,11 @@ export default class Owner extends User {
 
     let cid = this._getData("posts");
 
-    // TODO: Fold if needed
-    // if (dIdx.posts.length > 1000) {
-    //}
-
-    // let dInfo = {};
-    // dInfo.timestamp = Date.now();
-    // dInfo.cid = await this.asUploadJson(dIdx);
-    // newCids.push(dInfo.cid);
+    // Fold if needed
+    cid = await this.#asFoldPosts(dIdx.posts);
+    if (cid) {
+      newCids.push(cid);
+    }
 
     // Upload master list file
     console.debug("Uploading post list...");
@@ -159,6 +156,36 @@ export default class Owner extends User {
     if (this._delegate) {
       this._delegate.onWeb3OwnerProfileUpdated(this);
     }
+  }
+
+  async #asFoldPosts(postInfos) {
+    const n = 1024;
+    if (postInfos.length < n) {
+      return null;
+    }
+
+    // Note: This is hardcode that depends on other places
+    if (postInfos[n - 1].type != this.constructor.T_POST.ARTICLE) {
+      return null;
+    }
+
+    // Assuming all elements before n are articles.
+    let d = {items : postInfos.splice(0, n)};
+    // Add any additional articles.
+    // Should not happen but just in case
+    while (postInfos.length &&
+           postInfos[0].type == this.constructor.T_POST.ARTICLE) {
+      d.items.push(postInfos.shift());
+    }
+
+    let cid = await this.asUploadJson(d);
+    postInfos.unshift({
+      type : this.constructor.T_POST.IDX,
+      cid : cid,
+      timestamp : Date.now()
+    });
+
+    return cid;
   }
 
   async #asSign(msg) {

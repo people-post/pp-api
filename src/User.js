@@ -1,6 +1,8 @@
 import {sys} from './Global.js';
 
 export default class User {
+  static T_POST = {ARTICLE : 'ARTICLE', IDX: '_IDX'};
+
   #data;
   #dPosts;
   #dIdols;
