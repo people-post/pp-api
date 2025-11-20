@@ -1,6 +1,7 @@
 import assert from 'node:assert';
 import {mock, test} from 'node:test';
 
+import OPostListItem from './datatypes/OPostListItem.js';
 import Owner from './Owner.js';
 
 test.describe('Owner test', () => {
@@ -31,7 +32,10 @@ test.describe('Owner test', () => {
     owner.setStorage(mockStorage);
     owner.setPublishers([ mockPublisher ]);
 
-    await owner.asPublishPost({abc : 'def'}, []);
+    let item = new OPostListItem();
+    item.setType(OPostListItem.T_TYPE.ARTICLE);
+    item.setCid("");
+    await owner.asPublishPost(item, []);
     assert.strictEqual(
         mockDataSource.onWeb3OwnerRequestLoadCheckPoint.mock.callCount(), 0);
     assert.strictEqual(mockDelegate.asOnWeb3OwnerRequestSign.mock.callCount(),

@@ -1,3 +1,4 @@
+import OPostListItem from './datatypes/OPostListItem.js';
 import User from './User.js';
 
 export default class Owner extends User {
@@ -123,17 +124,17 @@ export default class Owner extends User {
     await this.#asPublish({texts : newCids});
   }
 
-  async asPublishPost(postInfo, refCids) {
+  async asPublishPost(oPostListItem, refCids) {
+    // oPostListItem : OPostListItem
     console.debug("Publishing post...");
     // TODO: refCids -> per type cidInfos
 
-    // TODO: Better way to modify attribute
-    postInfo.timestamp = Date.now();
+    let dItem = oPostListItem.ltsToJsonData();
 
     let newCids = [...refCids ];
 
     let dIdx = await this._asGetOrInitPostRoot();
-    dIdx.posts.unshift(postInfo);
+    dIdx.posts.unshift(dItem);
 
     let cid = this._getData("posts");
 
@@ -158,32 +159,31 @@ export default class Owner extends User {
     }
   }
 
-  async #asFoldPosts(postInfos) {
+  async #asFoldPosts(dItems) {
     const n = 1024;
-    if (postInfos.length < n) {
+    if (dItems.length < n) {
       return null;
     }
 
     // Note: This is hardcode that depends on other places
-    if (postInfos[n - 1].type != this.constructor.T_POST.ARTICLE) {
+    if (dItems[n - 1].type != OPostListItem.T_TYPE.ARTICLE) {
       return null;
     }
 
     // Assuming all elements before n are articles.
-    let d = {items : postInfos.splice(0, n)};
+    let d = {items : dItems.splice(0, n)};
     // Add any additional articles.
     // Should not happen but just in case
-    while (postInfos.length &&
-           postInfos[0].type == this.constructor.T_POST.ARTICLE) {
-      d.items.push(postInfos.shift());
+    while (dItems.length && dItems[0].type == OPostListItem.T_TYPE.ARTICLE) {
+      d.items.push(dItems.shift());
     }
 
     let cid = await this.asUploadJson(d);
-    postInfos.unshift({
-      type : this.constructor.T_POST.IDX,
-      cid : cid,
-      timestamp : Date.now()
-    });
+
+    let item = new OPostListItem();
+    item.setType(OPostListItem.T_TYPE.IDX);
+    item.setCid(cid);
+    dItems.unshift(item.ltsToJsonData());
 
     return cid;
   }
