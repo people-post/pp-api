@@ -3,7 +3,6 @@ import {mock, test} from 'node:test';
 
 import OArticle from './datatypes/OArticle.js';
 import OAttachmentMeta from './datatypes/OAttachmentMeta.js';
-import OPostListItem from './datatypes/OPostListItem.js';
 import Owner from './Owner.js';
 
 test.describe('Owner test', () => {
@@ -41,12 +40,7 @@ test.describe('Owner test', () => {
     oMeta.setType("pdf");
     oArticle.setAttachments([ oMeta ]);
 
-    let cid = owner.asUploadJson(oArticle.ltsToJsonData());
-
-    let item = new OPostListItem();
-    item.setType(OPostListItem.T_TYPE.ARTICLE);
-    item.setCid(cid);
-    await owner.asPublishPost(item, []);
+    await owner.asPublishArticle(oArticle);
     assert.strictEqual(
         mockDataSource.onWeb3OwnerRequestLoadCheckPoint.mock.callCount(), 0);
     assert.strictEqual(mockDelegate.asOnWeb3OwnerRequestSign.mock.callCount(),

@@ -6,6 +6,16 @@ export default class OArticle {
   #attachments = []; // [OAttachmentMeta]
   #createdAt;
 
+  getAllCids() {
+    // TODO: refCids -> per type cidInfos
+    let cids = [];
+    for (let a of this.#attachments) {
+      cids.push(a.getCid());
+    }
+    // TODO: Consider medias
+    return cids;
+  }
+
   setId(id) { this.#id = id; }
   setOwnerId(id) { this.#ownerId = id; }
   setTitle(text) { this.#title = text; }
