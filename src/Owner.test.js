@@ -1,6 +1,8 @@
 import assert from 'node:assert';
 import {mock, test} from 'node:test';
 
+import OArticle from './datatypes/OArticle.js';
+import OAttachmentMeta from './datatypes/OAttachmentMeta.js';
 import OPostListItem from './datatypes/OPostListItem.js';
 import Owner from './Owner.js';
 
@@ -32,17 +34,26 @@ test.describe('Owner test', () => {
     owner.setStorage(mockStorage);
     owner.setPublishers([ mockPublisher ]);
 
+    let oArticle = new OArticle();
+    let oMeta = new OAttachmentMeta();
+    oMeta.setCid("cid");
+    oMeta.setName("test");
+    oMeta.setType("pdf");
+    oArticle.setAttachments([ oMeta ]);
+
+    let cid = owner.asUploadJson(oArticle.ltsToJsonData());
+
     let item = new OPostListItem();
     item.setType(OPostListItem.T_TYPE.ARTICLE);
-    item.setCid("");
+    item.setCid(cid);
     await owner.asPublishPost(item, []);
     assert.strictEqual(
         mockDataSource.onWeb3OwnerRequestLoadCheckPoint.mock.callCount(), 0);
     assert.strictEqual(mockDelegate.asOnWeb3OwnerRequestSign.mock.callCount(),
-                       4);
+                       5);
     assert.strictEqual(
         mockDelegate.onWeb3OwnerRequestSaveCheckPoint.mock.callCount(), 1);
-    assert.strictEqual(mockStorage.asUploadJson.mock.callCount(), 2);
+    assert.strictEqual(mockStorage.asUploadJson.mock.callCount(), 3);
     assert.strictEqual(mockStorage.asPin.mock.callCount(), 1);
     assert.strictEqual(mockPublisher.asPublish.mock.callCount(), 1);
   });
