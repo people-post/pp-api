@@ -4,6 +4,8 @@ export default class OPostListItem {
   #type;
   #cid;
 
+  getCid() { return this.#cid; }
+
   setType(t) { this.#type = t; }
   setCid(cid) { this.#cid = cid; }
 

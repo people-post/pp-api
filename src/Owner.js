@@ -91,7 +91,8 @@ export default class Owner extends User {
       return;
     }
     d.like = true;
-    await this.#asMark(key, d, []);
+    let newCids = await this.#asAddMark(key, d);
+    await this.#asPublish({texts : newCids});
   }
 
   async asUnlike(key) {
@@ -105,17 +106,26 @@ export default class Owner extends User {
       return;
     }
     d.like = false;
-    await this.#asMark(key, d, []);
+    let newCids = await this.#asAddMark(key, d);
+    await this.#asPublish({texts : newCids});
   }
 
-  async asComment(key, postInfo, refCids) {
-    // TODO: refCids -> per type cidInfos
+  async asComment(key, oArticle, shouldMakePost) {
+    let oItem = await this.asUploadArticle(oArticle);
+
+    // Add comment meta
+    let dInfo = {type : "ARTICLE", cid : oItem.getCid()};
+
     let d = await this.asyncFindMark(key);
     if (!d) {
       d = {comments : []};
     }
-    d.comments.unshift(postInfo);
-    await this.#asMark(key, d, refCids);
+    d.comments.unshift(dInfo);
+
+    let newMarkCids = await this.#asAddMark(key, d);
+    let newPostCids = shouldMakePost ? await this.#asAddPostMeta(oItem) : [];
+
+    await this.#asPublish({texts : [ cid, ...newMarkCids, ...newMostCids ]});
   }
 
   async asUpdateProfile(d, newCids) {
@@ -124,14 +134,34 @@ export default class Owner extends User {
     await this.#asPublish({texts : newCids});
   }
 
-  async asPublishPost(oPostListItem, refCids) {
-    // oPostListItem : OPostListItem
-    console.debug("Publishing post...");
-    // TODO: refCids -> per type cidInfos
+  async asPublishArticle(oArticle) {
+    console.debug("Publishing article...");
+    let oItem = await this.#asUploadArticle(oArticle);
+    let pinIds = oArticle.getAllCids();
+    pinIds.push(oItem.getCid());
 
+    let newCids = await this.#asAddPostMeta(oItem);
+    await this.#asPublish({texts : [...pinIds, ...newCids ]});
+  }
+
+  #onProfileUpdated() {
+    if (this._delegate) {
+      this._delegate.onWeb3OwnerProfileUpdated(this);
+    }
+  }
+
+  async #asUploadArticle(oArticle) {
+    let cid = await this.asUploadJson(oArticle.ltsToJsonData());
+    let oItem = new OPostListItem();
+    oItem.setType(OPostListItem.T_TYPE.ARTICLE);
+    oItem.setCid(cid);
+    return oItem;
+  }
+
+  async #asAddPostMeta(oPostListItem) {
     let dItem = oPostListItem.ltsToJsonData();
 
-    let newCids = [...refCids ];
+    let newCids = [];
 
     let dIdx = await this._asGetOrInitPostRoot();
     dIdx.posts.unshift(dItem);
@@ -149,14 +179,7 @@ export default class Owner extends User {
     cid = await this.asUploadJson(dIdx);
     this._setData("posts", cid);
     newCids.push(cid);
-
-    await this.#asPublish({texts : newCids});
-  }
-
-  #onProfileUpdated() {
-    if (this._delegate) {
-      this._delegate.onWeb3OwnerProfileUpdated(this);
-    }
+    return newCids;
   }
 
   async #asFoldPosts(dItems) {
@@ -219,22 +242,18 @@ export default class Owner extends User {
     await this.#asUpdateIdols(dIdx);
   }
 
-  async #asMark(key, markInfo, refCids) {
-    // TODO: refCids -> per type cidInfos
-
+  async #asAddMark(key, markInfo) {
     let dRoot = await this._asGetOrInitMarkRoot();
 
     // TODO: Consider "folding" cases
     dRoot.marks[key] = markInfo;
 
-    let newCids = [...refCids ];
     let cid = this._getData("marks");
 
     cid = await this.asUploadJson(dRoot);
     this._setData("marks", cid);
-    newCids.push(cid);
 
-    await this.#asPublish({texts : newCids});
+    return [ cid ];
   }
 
   async #asUpdateIdols(dIdx) {
