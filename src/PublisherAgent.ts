@@ -2,7 +2,7 @@ import {sys} from './Global.js';
 import ServerAgent from './ServerAgent.js';
 
 export default class PublisherAgent extends ServerAgent {
-  async asPublish(cid, bearerId, sig) {
+  async asPublish(cid: string, bearerId: string, sig: string): Promise<any> {
     let url = this.getServer().getApiUrl("/api/pin/publish");
     let options = {
       method : "POST",
@@ -13,10 +13,10 @@ export default class PublisherAgent extends ServerAgent {
       body : JSON.stringify({cid : cid, signature : sig})
     };
     let res = await sys.ipfs.asFetch(url, options);
-    let d = await res.json();
+    let d: any = await res.json();
     if (d.error) {
       throw d.error;
     }
     return d.data;
   }
-};
+}
