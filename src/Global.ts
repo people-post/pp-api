@@ -6,4 +6,4 @@ export const sys = {
   utl : new Utilities()
 };
 
-export async function asInit() { await sys.ipfs.asInit(); };
+export async function asInit(): Promise<void> { await sys.ipfs.asInit(); }
