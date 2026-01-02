@@ -46,16 +46,22 @@ export default class RemoteServer {
   }
 
   #getLocationMultiAddr(): string {
-    const name = window.location.hostname;
-    let port = window.location.port;
-    if (port.length < 1) {
-      if (window.location.protocol == 'https') {
-        port = '443';
-      } else {
-        port = '80';
+    // Browser environment
+    if (typeof window !== 'undefined' && window.location) {
+      const name = window.location.hostname;
+      let port = window.location.port;
+      if (port.length < 1) {
+        if (window.location.protocol == 'https') {
+          port = '443';
+        } else {
+          port = '80';
+        }
       }
+      return '/dns4/' + name + '/tcp/' + port;
     }
-    return '/dns4/' + name + '/tcp/' + port;
+    // Node.js environment - use localhost as fallback
+    // In Node.js, the address should typically be provided explicitly
+    return '/dns4/localhost/tcp/80';
   }
 
   #parseAddressOrUseHost(sAddr?: string): Multiaddr {
