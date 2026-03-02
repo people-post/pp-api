@@ -1,5 +1,8 @@
 {
-    "name": "pp-api",
+    "name": "@people-post/pp-api",
+    "publishConfig": {
+        "registry": "https://npm.pkg.github.com"
+    },
     "version": "1.0.0",
     "description": "APIs used by pp-app and open to third parties for alternative app developments.",
     "homepage": "https://github.com/people-post/pp-api#readme",
