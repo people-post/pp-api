@@ -57,6 +57,9 @@ export default class User {
   constructor(data: UserData | null) { this.#data = data; }
 
   isFeed(): boolean { return false; }
+  isFollowingUser(): boolean { return false; }
+  isWorkshopOpen(): boolean { return false; }
+  isShopOpen(): boolean { return false; }
   hasIdol(userId: string): boolean {
     if (this.#dIdols) {
       return this.#dIdols.idols.some(i => i.id == userId);
@@ -66,26 +69,26 @@ export default class User {
     }
   }
 
-  getId(): string | null { return this._getData("uuid"); }
-  getUsername(): string | null { return this.getId(); }
+  getId(): string { return this._getData("uuid") || ""; }
+  getUsername(): string { return this.getId() || ""; }
   getProfile(): { nickname?: string; icon_cid?: string; [key: string]: any } { return this._getDataOrDefault("profile", {}); }
-  getNickname(): string | undefined { return this._getDataOrDefault("profile", {}).nickname; }
-  getIconUrl(): string | null {
+  getNickname(): string { return this._getDataOrDefault("profile", {}).nickname || ""; }
+  getIconUrl(): string {
     if (this.#iconUrl) {
       return this.#iconUrl;
     } else {
       let cid = this._getDataOrDefault("profile", {}).icon_cid;
       if (cid) {
         this.#asFetchIconImage(cid).then(() => this.#onProfileLoaded());
-        return null;
+        return "";
       } else {
         this.#iconUrl = "";
         return this.#iconUrl;
       }
     }
   }
-  getLogoUrl(): string | null { return this.getIconUrl(); }
-  getInfoImageUrl(): string | null { return null; }
+  getLogoUrl(): string { return this.getIconUrl() || ""; }
+  getInfoImageUrl(): string { return ""; }
   getDomainUrl(): string { return "N/A"; }
   getBackgroundColor(): string | null { return null; }
   getColorTheme(): string | null { return null; }
@@ -100,6 +103,9 @@ export default class User {
   getNFollowers(): number { return 0; }
   getBriefBio(): string { return ""; }
   getProps(): UserProps | null { return this.#props; }
+  getCommunityId(): string { return ""; }
+  getShopName(): string { return ""; }
+  getBlogConfig(): null { return null; }  // No BlogConfig import needed; null satisfies BlogConfig | null
 
   setProps(props: UserProps): void { this.#props = props; }
 

@@ -51,10 +51,9 @@ export default class Owner extends User {
   isFollowing(userId: string): boolean { return this.hasIdol(userId); }
   isIdolOf(user: User): boolean { return user.hasIdol(this.getId() ?? ''); }
 
-  getId(): string | null { return this._getData("uuid"); }
-  getNickname(): string | undefined { return this._getDataOrDefault("profile", {}).nickname; }
+  getId(): string { return this._getData("uuid") || ""; }
+  getNickname(): string { return this._getDataOrDefault("profile", {}).nickname || ""; }
   getUserNickname(userId: string, _defaultName?: string): string { return userId; }
-  getPreferredLanguage(): string | null { return null; }
 
   getPublicKey(): Uint8Array {
     const cb = this.getProps()?.ownerCallbacks?.onWeb3OwnerRequestGetPublicKey;
