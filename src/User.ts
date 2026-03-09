@@ -36,15 +36,10 @@ interface MarkInfo {
   comments?: any[];
 }
 
-/** Props-based pattern (see MIGRATION_PLAN.md). */
+/** Props-based pattern (see MIGRATION_PLAN.md). User-related callbacks only. */
 export interface UserPropsCallbacks {
   onWeb3UserIdolsLoaded?: (user: User) => void;
   onWeb3UserProfileLoaded?: (user: User) => void;
-  onWeb3OwnerProfileUpdated?: (owner: any) => void;
-  onWeb3OwnerRequestLoadCheckPoint?: (owner: any) => string | null;
-  onWeb3OwnerRequestGetPublicKey?: (owner: any) => Uint8Array;
-  onWeb3OwnerRequestSign?: (owner: any, msg: string) => Promise<string>;
-  onWeb3OwnerRequestSaveCheckPoint?: (owner: any, data: string) => void;
 }
 
 export interface UserProps {
@@ -60,9 +55,6 @@ export default class User {
   #props: UserProps | null = null;
 
   constructor(data: UserData | null) { this.#data = data; }
-
-  setProps(props: UserProps): void { this.#props = props; }
-  getProps(): UserProps | null { return this.#props; }
 
   isFeed(): boolean { return false; }
   hasIdol(userId: string): boolean {
@@ -107,6 +99,9 @@ export default class User {
   }
   getNFollowers(): number { return 0; }
   getBriefBio(): string { return ""; }
+  getProps(): UserProps | null { return this.#props; }
+
+  setProps(props: UserProps): void { this.#props = props; }
 
   reset(data: UserData | null): void { this._reset(data); }
 

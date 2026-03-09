@@ -4,21 +4,21 @@ import {test} from 'node:test';
 import OArticle from './datatypes/OArticle.js';
 import OAttachmentMeta from './datatypes/OAttachmentMeta.js';
 import Owner from './Owner.js';
-import type { UserProps } from './User.js';
+import type { OwnerProps } from './Owner.js';
 import StorageAgent from './StorageAgent.js';
 import PublisherAgent from './PublisherAgent.js';
 
 test.describe('Owner test', () => {
   test.it('Posting', async (t) => {
-    const mockCallbacks = {
+    const mockOwnerCallbacks = {
       onWeb3OwnerRequestLoadCheckPoint: (_owner: unknown) => null,
       onWeb3OwnerRequestSign: async (_owner: unknown, msg: string) => msg,
       onWeb3OwnerRequestSaveCheckPoint: (_owner: unknown, _data: string) => {},
     };
 
-    (t.mock.method as any)(mockCallbacks, 'onWeb3OwnerRequestLoadCheckPoint');
-    (t.mock.method as any)(mockCallbacks, 'onWeb3OwnerRequestSign');
-    (t.mock.method as any)(mockCallbacks, 'onWeb3OwnerRequestSaveCheckPoint');
+    (t.mock.method as any)(mockOwnerCallbacks, 'onWeb3OwnerRequestLoadCheckPoint');
+    (t.mock.method as any)(mockOwnerCallbacks, 'onWeb3OwnerRequestSign');
+    (t.mock.method as any)(mockOwnerCallbacks, 'onWeb3OwnerRequestSaveCheckPoint');
 
     let mockStorage: StorageAgent = {
       async asUploadJson(_msg, _id, _sig) { return 'mock-cid'; },
@@ -32,8 +32,8 @@ test.describe('Owner test', () => {
     (t.mock.method as any)(mockStorage, 'asPin');
     (t.mock.method as any)(mockPublisher, 'asPublish');
 
-    const props: UserProps = {
-      callbacks: mockCallbacks,
+    const props: OwnerProps = {
+      ownerCallbacks: mockOwnerCallbacks,
     };
 
     let owner = new Owner({});
@@ -50,11 +50,11 @@ test.describe('Owner test', () => {
 
     await owner.asPublishArticle(oArticle);
     assert.strictEqual(
-        (mockCallbacks.onWeb3OwnerRequestLoadCheckPoint as any).mock?.callCount(), 0);
+        (mockOwnerCallbacks.onWeb3OwnerRequestLoadCheckPoint as any).mock?.callCount(), 0);
     assert.strictEqual(
-        (mockCallbacks.onWeb3OwnerRequestSign as any).mock?.callCount(), 5);
+        (mockOwnerCallbacks.onWeb3OwnerRequestSign as any).mock?.callCount(), 5);
     assert.strictEqual(
-        (mockCallbacks.onWeb3OwnerRequestSaveCheckPoint as any).mock?.callCount(), 1);
+        (mockOwnerCallbacks.onWeb3OwnerRequestSaveCheckPoint as any).mock?.callCount(), 1);
     assert.strictEqual(
         mockStorage.asUploadJson && 
         (mockStorage.asUploadJson as any).mock?.callCount(), 3);

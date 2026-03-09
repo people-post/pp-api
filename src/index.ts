@@ -1,6 +1,6 @@
 export * as dat from './datatypes/index.js';
 export {default as Ipfs} from './Ipfs.js';
-export {default as Owner} from './Owner.js';
+export {default as Owner, type OwnerProps, type OwnerPropsCallbacks} from './Owner.js';
 export {default as PublisherAgent} from './PublisherAgent.js';
 export {default as RemoteServer} from './RemoteServer.js';
 export {default as ServerAgent} from './ServerAgent.js';

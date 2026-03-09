@@ -1,8 +1,22 @@
 import OPostListItem from './datatypes/OPostListItem.js';
-import User from './User.js';
+import User, { type UserProps } from './User.js';
 import OArticle from './datatypes/OArticle.js';
 import StorageAgent from './StorageAgent.js';
 import PublisherAgent from './PublisherAgent.js';
+
+/** Owner-specific callbacks (checkpoint, signing, profile updates). */
+export interface OwnerPropsCallbacks {
+  onWeb3OwnerProfileUpdated?: (owner: Owner) => void;
+  onWeb3OwnerRequestLoadCheckPoint?: (owner: Owner) => string | null;
+  onWeb3OwnerRequestGetPublicKey?: (owner: Owner) => Uint8Array;
+  onWeb3OwnerRequestSign?: (owner: Owner, msg: string) => Promise<string>;
+  onWeb3OwnerRequestSaveCheckPoint?: (owner: Owner, data: string) => void;
+}
+
+/** Props for Owner. Extends UserProps with owner-specific callbacks. */
+export interface OwnerProps extends UserProps {
+  ownerCallbacks?: OwnerPropsCallbacks;
+}
 
 interface OwnerData {
   uuid?: string;
@@ -43,12 +57,15 @@ export default class Owner extends User {
   getPreferredLanguage(): string | null { return null; }
 
   getPublicKey(): Uint8Array {
-    const cb = this.getProps()?.callbacks?.onWeb3OwnerRequestGetPublicKey;
+    const cb = this.getProps()?.ownerCallbacks?.onWeb3OwnerRequestGetPublicKey;
     if (!cb) {
       throw new Error('DataSource.onWeb3OwnerRequestGetPublicKey not implemented');
     }
     return cb(this);
   }
+  override getProps(): OwnerProps | null { return super.getProps() as OwnerProps | null; }
+
+  override setProps(props: OwnerProps): void { super.setProps(props); }
 
   setStorage(agent: StorageAgent): void { this.#aStorage = agent; }
   setPublishers(agents: PublisherAgent[]): void { this.#aPublishers = agents; }
@@ -69,7 +86,7 @@ export default class Owner extends User {
   }
 
   loadCheckPoint(): void {
-    const cb = this.getProps()?.callbacks?.onWeb3OwnerRequestLoadCheckPoint;
+    const cb = this.getProps()?.ownerCallbacks?.onWeb3OwnerRequestLoadCheckPoint;
     if (!cb) {
       return;
     }
@@ -78,7 +95,7 @@ export default class Owner extends User {
   }
 
   saveCheckPoint(): void {
-    const cb = this.getProps()?.callbacks?.onWeb3OwnerRequestSaveCheckPoint;
+    const cb = this.getProps()?.ownerCallbacks?.onWeb3OwnerRequestSaveCheckPoint;
     if (!cb) {
       return;
     }
@@ -186,7 +203,7 @@ export default class Owner extends User {
   }
 
   #onProfileUpdated(): void {
-    this.getProps()?.callbacks?.onWeb3OwnerProfileUpdated?.(this);
+    this.getProps()?.ownerCallbacks?.onWeb3OwnerProfileUpdated?.(this);
   }
 
   async #asUploadArticle(oArticle: OArticle): Promise<OPostListItem> {
@@ -251,7 +268,7 @@ export default class Owner extends User {
   }
 
   async #asSign(msg: string): Promise<string> {
-    const cb = this.getProps()?.callbacks?.onWeb3OwnerRequestSign;
+    const cb = this.getProps()?.ownerCallbacks?.onWeb3OwnerRequestSign;
     if (!cb) {
       throw new Error('Delegate.asOnWeb3OwnerRequestSign not implemented');
     }
