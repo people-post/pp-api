@@ -91,7 +91,7 @@ export default class User {
   getInfoImageUrl(): string { return ""; }
   getDomainUrl(): string { return "N/A"; }
   getBackgroundColor(): string | null { return null; }
-  getColorTheme(): string | null { return null; }
+  getColorTheme(): null { return null; }
   getNIdols(): number {
     if (this.#dIdols) {
       return this.#dIdols.idols.length;
