@@ -27,12 +27,16 @@
     },
     "files": [
         "dist",
-        "src"
+        "src",
+        "tsconfig.json",
+        "scripts"
     ],
     "config": {
         "entry": "src/index.ts"
     },
     "scripts": {
+        "prepublishOnly": "npm run build",
+        "postinstall": "node scripts/postinstall.js",
         "build": "tsc",
         "bundle": "esbuild $npm_package_config_entry --bundle --platform=browser --outfile=bundle.js --global-name=pp",
         "package": "esbuild $npm_package_config_entry --bundle --platform=browser --outfile=bundle.js --global-name=pp --minify",
