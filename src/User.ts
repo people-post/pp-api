@@ -36,17 +36,19 @@ interface MarkInfo {
   comments?: any[];
 }
 
-export interface DataSource {
-  onWeb3OwnerRequestLoadCheckPoint?(owner: any): string | null;
-  onWeb3OwnerRequestGetPublicKey?(owner: any): Uint8Array;
+/** Props-based pattern (see MIGRATION_PLAN.md). */
+export interface UserPropsCallbacks {
+  onWeb3UserIdolsLoaded?: (user: User) => void;
+  onWeb3UserProfileLoaded?: (user: User) => void;
+  onWeb3OwnerProfileUpdated?: (owner: any) => void;
+  onWeb3OwnerRequestLoadCheckPoint?: (owner: any) => string | null;
+  onWeb3OwnerRequestGetPublicKey?: (owner: any) => Uint8Array;
+  onWeb3OwnerRequestSign?: (owner: any, msg: string) => Promise<string>;
+  onWeb3OwnerRequestSaveCheckPoint?: (owner: any, data: string) => void;
 }
 
-export interface Delegate {
-  onWeb3UserIdolsLoaded?(user: User): void;
-  onWeb3UserProfileLoaded?(user: User): void;
-  onWeb3OwnerProfileUpdated?(owner: any): void;
-  asOnWeb3OwnerRequestSign?(owner: any, msg: string): Promise<string>;
-  onWeb3OwnerRequestSaveCheckPoint?(owner: any, data: string): void;
+export interface UserProps {
+  callbacks?: UserPropsCallbacks;
 }
 
 export default class User {
@@ -55,10 +57,12 @@ export default class User {
   #dIdols: IdolRoot | null = null;
   #dMarks: MarkRoot | null = null;
   #iconUrl: string | null = null;
-  _dataSource: DataSource | null = null;
-  _delegate: Delegate | null = null;
+  #props: UserProps | null = null;
 
   constructor(data: UserData | null) { this.#data = data; }
+
+  setProps(props: UserProps): void { this.#props = props; }
+  getProps(): UserProps | null { return this.#props; }
 
   isFeed(): boolean { return false; }
   hasIdol(userId: string): boolean {
@@ -103,9 +107,6 @@ export default class User {
   }
   getNFollowers(): number { return 0; }
   getBriefBio(): string { return ""; }
-
-  setDataSource(dataSource: DataSource): void { this._dataSource = dataSource; }
-  setDelegate(delegate: Delegate): void { this._delegate = delegate; }
 
   reset(data: UserData | null): void { this._reset(data); }
 
@@ -201,15 +202,11 @@ export default class User {
   }
 
   #onIdolsLoaded(): void {
-    if (this._delegate) {
-      this._delegate.onWeb3UserIdolsLoaded?.(this);
-    }
+    this.#props?.callbacks?.onWeb3UserIdolsLoaded?.(this);
   }
 
   #onProfileLoaded(): void {
-    if (this._delegate) {
-      this._delegate.onWeb3UserProfileLoaded?.(this);
-    }
+    this.#props?.callbacks?.onWeb3UserProfileLoaded?.(this);
   }
 
   async #asFindMark(prefix: string, suffix: string, dMarks: Record<string, any>): Promise<MarkInfo | null> {

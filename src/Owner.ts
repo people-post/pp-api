@@ -43,10 +43,11 @@ export default class Owner extends User {
   getPreferredLanguage(): string | null { return null; }
 
   getPublicKey(): Uint8Array {
-    if (!this._dataSource?.onWeb3OwnerRequestGetPublicKey) {
+    const cb = this.getProps()?.callbacks?.onWeb3OwnerRequestGetPublicKey;
+    if (!cb) {
       throw new Error('DataSource.onWeb3OwnerRequestGetPublicKey not implemented');
     }
-    return this._dataSource.onWeb3OwnerRequestGetPublicKey(this);
+    return cb(this);
   }
 
   setStorage(agent: StorageAgent): void { this.#aStorage = agent; }
@@ -68,19 +69,20 @@ export default class Owner extends User {
   }
 
   loadCheckPoint(): void {
-    if (!this._dataSource?.onWeb3OwnerRequestLoadCheckPoint) {
+    const cb = this.getProps()?.callbacks?.onWeb3OwnerRequestLoadCheckPoint;
+    if (!cb) {
       return;
     }
-    let s = this._dataSource.onWeb3OwnerRequestLoadCheckPoint(this);
+    let s = cb(this);
     this._reset(s ? JSON.parse(s) : null);
   }
 
   saveCheckPoint(): void {
-    if (!this._delegate?.onWeb3OwnerRequestSaveCheckPoint) {
+    const cb = this.getProps()?.callbacks?.onWeb3OwnerRequestSaveCheckPoint;
+    if (!cb) {
       return;
     }
-    this._delegate.onWeb3OwnerRequestSaveCheckPoint(
-        this, JSON.stringify(this.#toLtsJsonData()));
+    cb(this, JSON.stringify(this.#toLtsJsonData()));
   }
 
   async asRegister(agent: PublisherAgent, name: string): Promise<void> {
@@ -184,9 +186,7 @@ export default class Owner extends User {
   }
 
   #onProfileUpdated(): void {
-    if (this._delegate) {
-      this._delegate.onWeb3OwnerProfileUpdated?.(this);
-    }
+    this.getProps()?.callbacks?.onWeb3OwnerProfileUpdated?.(this);
   }
 
   async #asUploadArticle(oArticle: OArticle): Promise<OPostListItem> {
@@ -251,10 +251,11 @@ export default class Owner extends User {
   }
 
   async #asSign(msg: string): Promise<string> {
-    if (!this._delegate?.asOnWeb3OwnerRequestSign) {
+    const cb = this.getProps()?.callbacks?.onWeb3OwnerRequestSign;
+    if (!cb) {
       throw new Error('Delegate.asOnWeb3OwnerRequestSign not implemented');
     }
-    return await this._delegate.asOnWeb3OwnerRequestSign(this, msg);
+    return await cb(this, msg);
   }
 
   #toLtsJsonData(): OwnerData {

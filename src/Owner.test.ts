@@ -4,37 +4,40 @@ import {test} from 'node:test';
 import OArticle from './datatypes/OArticle.js';
 import OAttachmentMeta from './datatypes/OAttachmentMeta.js';
 import Owner from './Owner.js';
-import { DataSource, Delegate } from './User.js';
+import type { UserProps } from './User.js';
 import StorageAgent from './StorageAgent.js';
 import PublisherAgent from './PublisherAgent.js';
 
 test.describe('Owner test', () => {
   test.it('Posting', async (t) => {
-    let mockDataSource: DataSource = {
-      onWeb3OwnerRequestLoadCheckPoint(_owner) { return null; }
+    const mockCallbacks = {
+      onWeb3OwnerRequestLoadCheckPoint: (_owner: unknown) => null,
+      onWeb3OwnerRequestSign: async (_owner: unknown, msg: string) => msg,
+      onWeb3OwnerRequestSaveCheckPoint: (_owner: unknown, _data: string) => {},
     };
-    let mockDelegate: Delegate = {
-      async asOnWeb3OwnerRequestSign(_owner, msg) { return msg; },
-      onWeb3OwnerRequestSaveCheckPoint(_owner, _data) {}
-    };
+
+    (t.mock.method as any)(mockCallbacks, 'onWeb3OwnerRequestLoadCheckPoint');
+    (t.mock.method as any)(mockCallbacks, 'onWeb3OwnerRequestSign');
+    (t.mock.method as any)(mockCallbacks, 'onWeb3OwnerRequestSaveCheckPoint');
+
     let mockStorage: StorageAgent = {
-      async asUploadJson(_msg, _id, _sig) { return ''; },
+      async asUploadJson(_msg, _id, _sig) { return 'mock-cid'; },
       async asPin(_msg, _id, _sig) {}
     } as StorageAgent;
     let mockPublisher: PublisherAgent = {
       async asPublish(_cid, _bearerId, _sig) { return ''; }
     } as PublisherAgent;
 
-    (t.mock.method as any)(mockDataSource, 'onWeb3OwnerRequestLoadCheckPoint');
-    (t.mock.method as any)(mockDelegate, 'asOnWeb3OwnerRequestSign');
-    (t.mock.method as any)(mockDelegate, 'onWeb3OwnerRequestSaveCheckPoint');
     (t.mock.method as any)(mockStorage, 'asUploadJson');
     (t.mock.method as any)(mockStorage, 'asPin');
     (t.mock.method as any)(mockPublisher, 'asPublish');
 
+    const props: UserProps = {
+      callbacks: mockCallbacks,
+    };
+
     let owner = new Owner({});
-    owner.setDataSource(mockDataSource);
-    owner.setDelegate(mockDelegate);
+    owner.setProps(props);
     owner.setStorage(mockStorage);
     owner.setPublishers([ mockPublisher ]);
 
@@ -47,14 +50,11 @@ test.describe('Owner test', () => {
 
     await owner.asPublishArticle(oArticle);
     assert.strictEqual(
-        mockDataSource.onWeb3OwnerRequestLoadCheckPoint && 
-        (mockDataSource.onWeb3OwnerRequestLoadCheckPoint as any).mock?.callCount(), 0);
+        (mockCallbacks.onWeb3OwnerRequestLoadCheckPoint as any).mock?.callCount(), 0);
     assert.strictEqual(
-        mockDelegate.asOnWeb3OwnerRequestSign && 
-        (mockDelegate.asOnWeb3OwnerRequestSign as any).mock?.callCount(), 5);
+        (mockCallbacks.onWeb3OwnerRequestSign as any).mock?.callCount(), 5);
     assert.strictEqual(
-        mockDelegate.onWeb3OwnerRequestSaveCheckPoint && 
-        (mockDelegate.onWeb3OwnerRequestSaveCheckPoint as any).mock?.callCount(), 1);
+        (mockCallbacks.onWeb3OwnerRequestSaveCheckPoint as any).mock?.callCount(), 1);
     assert.strictEqual(
         mockStorage.asUploadJson && 
         (mockStorage.asUploadJson as any).mock?.callCount(), 3);

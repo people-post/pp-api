@@ -5,6 +5,6 @@ export {default as PublisherAgent} from './PublisherAgent.js';
 export {default as RemoteServer} from './RemoteServer.js';
 export {default as ServerAgent} from './ServerAgent.js';
 export {default as StorageAgent} from './StorageAgent.js';
-export {default as User} from './User.js';
+export {default as User, type UserProps} from './User.js';
 
 export * from './Global.js';
